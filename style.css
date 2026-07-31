@@ -1,0 +1,471 @@
+/* ═══════════════════════════════════════
+   白沙街疯人院 · 病历档案风
+   纸张米黄 × 墨色 × 印章红
+   ═══════════════════════════════════════ */
+
+:root {
+  --paper: #f6f1e3;        /* 纸张底色 */
+  --paper-deep: #ece3cd;   /* 深一层的纸色 */
+  --card: #fdfaf1;         /* 卡片纸色 */
+  --ink: #2b2a26;          /* 墨色 */
+  --ink-soft: #6b6555;     /* 淡墨 */
+  --red: #b3302d;          /* 印章红 */
+  --red-deep: #8f2421;
+  --line: #cdc2a4;         /* 档案线 */
+  --tape: rgba(230, 197, 106, 0.55); /* 胶带 */
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ═══════════ 页面切换过渡（总览 ↔ 详情页） ═══════════
+   进入：页面淡入上移；切出：向下滑出后跳转           */
+body { animation: page-in 0.45s ease both; }
+body.page-leave {
+  animation: none;
+  opacity: 0; transform: translateY(28px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  body { animation-duration: 0.01ms; }
+  body.page-leave { transition-duration: 0.01ms; }
+}
+
+/* ═══════════ 大门 / 病区 切换 ═══════════
+   body.at-gate = 站在大门外：只看得到入院须知
+   body.entered = 已入院：按顺序逐区解锁参观
+   每个病区需点击「下一区」按钮才能解锁            */
+.topbar, section.ward, .footer { display: none; }
+
+body.entered .topbar { display: block; animation: slide-down 0.4s ease; }
+body.entered section.ward.unlocked,
+body.entered .footer { display: block; animation: fade-in 0.6s ease; }
+body.entered .hero { display: none; }
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes slide-down {
+  from { opacity: 0; transform: translateY(-16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.back-to-gate {
+  color: var(--ink-soft); text-decoration: none;
+  border-bottom: 1px dashed var(--ink-soft); transition: color 0.2s;
+}
+.back-to-gate:hover { color: var(--red); border-color: var(--red); }
+.footer .back-to-gate { font-size: 14px; }
+
+/* ── 下一区按钮 ── */
+.next-btn {
+  display: block; margin: 44px auto 8px;
+  font-family: inherit; font-size: 18px; letter-spacing: 2px;
+  color: var(--red); background: var(--card);
+  border: 2px dashed var(--red); padding: 12px 32px; cursor: pointer;
+  transition: all 0.25s;
+}
+.next-btn:hover {
+  background: var(--red); color: var(--paper);
+  border-style: solid; box-shadow: 4px 4px 0 rgba(43,42,38,0.18);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--paper);
+  /* 病历本横线格 + 纸点阵 */
+  background-image:
+    repeating-linear-gradient(to bottom, transparent 0, transparent 27px, rgba(122, 80, 32, 0.05) 27px, rgba(122, 80, 32, 0.05) 28px),
+    radial-gradient(rgba(43,42,38,0.04) 1px, transparent 1px);
+  background-size: auto, 22px 22px;
+  color: var(--ink);
+  font-family: "KaiTi", "STKaiti", "Kaiti SC", "楷体", serif;
+  line-height: 1.8;
+  font-size: 17px;
+}
+
+/* 档案感文字 */
+.file-font, .notice-card, .patient-card, .tl-card, .msg-card {
+  font-family: "FangSong", "STFangsong", "仿宋", "KaiTi", serif;
+}
+
+::selection { background: rgba(179,48,45,0.25); }
+
+/* ═══════════ 顶部导航 ═══════════ */
+.topbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: rgba(246, 241, 227, 0.92);
+  backdrop-filter: blur(6px);
+  border-bottom: 2px solid var(--line);
+}
+.topbar-inner {
+  max-width: 1080px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 20px; flex-wrap: wrap; gap: 6px;
+}
+.brand {
+  font-size: 21px; font-weight: bold; color: var(--ink);
+  text-decoration: none; letter-spacing: 1px;
+}
+.nav { display: flex; gap: 4px; flex-wrap: wrap; }
+.nav a {
+  color: var(--ink); text-decoration: none; padding: 4px 12px;
+  border: 1px solid transparent; border-radius: 4px; font-size: 16px;
+  transition: all 0.2s;
+}
+.nav a:hover {
+  border-color: var(--red); color: var(--red);
+  background: rgba(179,48,45,0.06);
+}
+
+/* ═══════════ 首页 ═══════════ */
+.hero {
+  position: relative; min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  padding: 120px 20px 80px; overflow: hidden;
+  border-bottom: 3px double var(--red);
+  /* 牛皮纸档案袋底色 */
+  background-color: #c9a268;
+  background-image:
+    /* 纸纤维噪点 */
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='2' seed='5'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.15 0 0 0 0 0.10 0 0 0 0 0.05 0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E"),
+    /* 横向纤维纹 */
+    repeating-linear-gradient(to bottom, rgba(122, 80, 32, 0.05) 0, rgba(122, 80, 32, 0.05) 1px, transparent 1px, transparent 4px),
+    /* 光照起伏 */
+    linear-gradient(160deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0.10));
+  /* 档案袋边缘的弯曲阴影 */
+  box-shadow: inset 0 0 70px rgba(90, 60, 20, 0.28);
+}
+/* 顶部封口折痕线 */
+.hero::before {
+  content: ""; position: absolute; top: 40px; left: 0; right: 0;
+  border-top: 2px dashed rgba(90, 60, 20, 0.35);
+}
+/* 顶部中央金属孔圈（档案袋系绳孔） */
+.hero::after {
+  content: ""; position: absolute; top: 18px; left: 50%; transform: translateX(-50%);
+  width: 34px; height: 34px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #f0d9a8, #a67c3d 60%, #7a5420);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.35), inset 0 0 6px rgba(0,0,0,0.4);
+}
+.ecg {
+  position: absolute; top: 62px; left: 0; width: 100%; height: 60px;
+  stroke-dasharray: 600; stroke-dashoffset: 600;
+  animation: ecg-draw 6s linear infinite;
+}
+@keyframes ecg-draw {
+  0% { stroke-dashoffset: 600; }
+  100% { stroke-dashoffset: -600; }
+}
+.hero-content { max-width: 720px; text-align: center; position: relative; }
+.hero-file {
+  font-family: "FangSong", serif; color: var(--ink-soft);
+  font-size: 15px; letter-spacing: 2px; margin-bottom: 8px;
+}
+.hero-title {
+  font-size: clamp(44px, 8vw, 76px); font-weight: bold;
+  letter-spacing: 8px; margin: 6px 0 4px;
+}
+.hero-sub { color: var(--ink-soft); font-size: 19px; letter-spacing: 3px; margin-bottom: 40px; }
+
+/* ── 印章 ── */
+.stamp {
+  position: absolute; display: inline-block;
+  color: var(--red); border: 3px double var(--red);
+  padding: 6px 14px; border-radius: 6px;
+  font-weight: bold; letter-spacing: 4px; line-height: 1.5;
+  opacity: 0.85; user-select: none; pointer-events: none;
+  box-shadow: inset 0 0 0 2px rgba(179,48,45,0.25);
+}
+.stamp-big { top: -30px; right: -20px; font-size: 22px; transform: rotate(8deg); }
+.stamp-sub { font-size: 12px; letter-spacing: 2px; text-align: center; }
+@media (max-width: 600px) { .stamp-big { right: 10px; top: -40px; font-size: 17px; } }
+
+/* ── 入院须知 ── */
+.notice-card {
+  background: var(--card); border: 1.5px solid var(--ink);
+  box-shadow: 6px 6px 0 rgba(43,42,38,0.12);
+  text-align: left; padding: 22px 26px; margin-bottom: 36px;
+  position: relative;
+}
+.notice-card::before {
+  content: ""; position: absolute; top: -12px; left: 50%; transform: translateX(-50%) rotate(-2deg);
+  width: 140px; height: 26px; background: var(--tape);
+}
+.notice-head {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-size: 20px; font-weight: bold; letter-spacing: 6px;
+  border-bottom: 2px solid var(--line); padding-bottom: 8px; margin-bottom: 12px;
+}
+.notice-no { font-size: 13px; letter-spacing: 2px; color: var(--ink-soft); font-weight: normal; }
+.notice-list { padding-left: 24px; }
+.notice-list li { margin: 6px 0; }
+.notice-list b { color: var(--red); }
+.notice-sign { text-align: right; margin-top: 14px; color: var(--ink-soft); font-size: 15px; }
+
+.enter-btn {
+  display: inline-block; color: var(--red); text-decoration: none;
+  border: 2px solid var(--red); padding: 10px 26px; border-radius: 4px;
+  font-size: 18px; letter-spacing: 3px; background: rgba(179,48,45,0.05);
+  transition: all 0.25s;
+}
+.enter-btn:hover { background: var(--red); color: var(--paper); }
+
+/* ═══════════ 通用板块 ═══════════ */
+.section { padding: 90px 20px; max-width: 1080px; margin: 0 auto; position: relative; }
+/* 交替板块：背景透明（与病友档案一致的米黄纸+横线格），仅保留分隔线 */
+.section-alt { max-width: none; border-top: 3px double var(--line); border-bottom: 3px double var(--line); }
+.section-alt > * { max-width: 1080px; margin-left: auto; margin-right: auto; }
+
+/* ── 板块背景装饰（药丸/书本/回形针等，JS 自动散布） ── */
+.deco {
+  position: absolute; font-size: 126px; line-height: 1;
+  opacity: 0.24; pointer-events: none; user-select: none;
+  z-index: -1;
+}
+.section-head { text-align: center; margin-bottom: 48px; }
+.section-head h2 {
+  font-size: clamp(28px, 5vw, 38px); letter-spacing: 10px; display: inline-block;
+  padding: 0 18px 8px; border-bottom: 3px double var(--red);
+}
+.section-sub { color: var(--ink-soft); margin-top: 10px; font-size: 15px; letter-spacing: 2px; }
+
+/* 滚动渐显 */
+.reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* ═══════════ 病友档案（总览） ═══════════ */
+.patient-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 34px; padding: 8px 0 10px;
+}
+.patient-link {
+  display: block; text-decoration: none; color: var(--ink);
+  transition: transform 0.3s;
+}
+.patient-link:hover { transform: translateY(-6px); }
+.patient-card {
+  background: var(--card);
+  background-image: radial-gradient(rgba(43,42,38,0.035) 1px, transparent 1px);
+  background-size: 14px 14px;
+  border: 1.5px dashed var(--ink);
+  padding: 20px 18px 26px; position: relative; text-align: center;
+  box-shadow: 5px 5px 0 rgba(43,42,38,0.12);
+  transition: border-color 0.25s, box-shadow 0.25s, transform 0.3s;
+}
+.patient-link:hover .patient-card {
+  border-color: var(--red);
+  box-shadow: 9px 9px 0 rgba(179,48,45,0.22);
+  transform: rotate(0deg) translateY(-2px);
+}
+/* 顶部彩色档案条 */
+.pc-bar {
+  position: absolute; top: 0; left: 0; right: 0; height: 9px;
+  border-radius: 2px 2px 0 0;
+}
+/* 纸胶带：三种贴法 */
+.patient-card::before {
+  content: ""; position: absolute; top: -12px; left: 12px;
+  width: 96px; height: 26px; background: var(--tape);
+  transform: rotate(-2deg);
+}
+/* 已疯印章：悬停时盖下来 */
+.patient-card::after {
+  content: "已疯"; position: absolute; top: 16px; right: 12px;
+  color: var(--red); border: 2px solid var(--red); border-radius: 4px;
+  padding: 1px 8px; font-size: 13px; font-weight: bold;
+  letter-spacing: 2px; opacity: 0; transform: rotate(10deg) scale(0.7);
+  transition: opacity 0.3s, transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: none;
+}
+.patient-link:hover .patient-card::after {
+  opacity: 0.85; transform: rotate(10deg) scale(1);
+}
+
+/* ── 变体 A（红系）：虚线边框 + 左胶带 + 左倾 ── */
+.v1 { border-style: dashed; transform: rotate(-1deg); }
+.v1 .pc-bar { background: var(--red); }
+.v1::before { left: 12px; transform: rotate(-2deg); }
+
+/* ── 变体 B（墨蓝系）：双线边框 + 中胶带 + 微右倾 ── */
+.v2 { border-style: double; transform: rotate(0.8deg); }
+.v2 .pc-bar { background: #3a5a7a; }
+.v2::before { left: 50%; transform: translateX(-50%) rotate(1deg); }
+
+/* ── 变体 C（橄榄系）：点线边框 + 右胶带 + 右倾 ── */
+.v3 { border-style: dotted; transform: rotate(1.2deg); }
+.v3 .pc-bar { background: #6b7a3a; }
+.v3::before { left: auto; right: 12px; transform: rotate(2deg); }
+
+/* 大头照：内框装饰 */
+.pc-avatar {
+  width: 100%; aspect-ratio: 1 / 1;
+  border: 1.5px solid var(--ink); background: #e9e3d2;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-size: 13px; color: var(--ink-soft); text-align: center; line-height: 1.5;
+  overflow: hidden; margin-bottom: 16px; position: relative;
+}
+.pc-avatar::after {
+  content: ""; position: absolute; inset: 6px;
+  border: 1px solid rgba(43,42,38,0.3);
+  pointer-events: none;
+}
+.v1 .pc-avatar::after { border-color: rgba(179,48,45,0.4); }
+.v2 .pc-avatar::after { border-style: double; border-color: rgba(58,90,122,0.4); }
+.v3 .pc-avatar::after { border-style: dotted; border-color: rgba(107,122,58,0.5); }
+.pc-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.pc-avatar span { font-size: 46px; opacity: 0.55; margin-bottom: 4px; }
+
+/* 昵称 + 称号 + 档案号 */
+.pc-name {
+  font-size: 26px; font-weight: bold; letter-spacing: 3px; position: relative;
+}
+.pc-name::after {
+  content: ""; display: block; width: 62%; height: 2px; margin: 8px auto 0;
+  background: repeating-linear-gradient(90deg, var(--line) 0 6px, transparent 6px 11px);
+}
+.pc-title { font-size: 14px; color: var(--red); letter-spacing: 1px; margin-top: 6px; }
+.v2 .pc-title { color: #3a5a7a; }
+.v3 .pc-title { color: #6b7a3a; }
+.pc-no {
+  position: absolute; bottom: 8px; right: 10px;
+  font-size: 11px; color: var(--ink-soft); letter-spacing: 1px; opacity: 0.8;
+}
+
+/* ═══════════ 详情页表格（patient.html 复用） ═══════════ */
+.pc-table { width: 100%; border-collapse: collapse; font-size: 15px; }
+.pc-table td {
+  border: 1px solid var(--line); padding: 6px 10px; vertical-align: top;
+}
+.pc-table .k { width: 86px; background: rgba(205,194,164,0.25); color: var(--ink-soft); white-space: nowrap; }
+
+/* ═══════════ 照片墙 ═══════════ */
+.photo-wall {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 36px; padding: 10px 0 20px;
+}
+.photo-slot { text-align: center; }
+
+/* 撕纸照片框：白纸底 + 锯齿边缘（torn-mask.svg）+ 胶带 + 微旋转 */
+.photo-frame {
+  position: relative;
+  background: var(--card);
+  padding: 9px 9px 13px;
+  box-shadow: 5px 5px 0 rgba(43,42,38,0.16);
+  -webkit-mask: url("torn-mask.svg") no-repeat center / 100% 100%;
+          mask: url("torn-mask.svg") no-repeat center / 100% 100%;
+}
+.photo-frame::before {
+  content: ""; position: absolute; top: -12px; left: 50%; transform: translateX(-50%) rotate(1deg);
+  width: 92px; height: 24px; background: var(--tape);
+  z-index: 2;
+}
+.photo-frame img {
+  display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover;
+  border: 1px solid rgba(43,42,38,0.22);
+}
+.photo-slot:nth-child(odd) .photo-frame { transform: rotate(-1.4deg); }
+.photo-slot:nth-child(even) .photo-frame { transform: rotate(1.4deg); }
+.photo-slot:nth-child(3n) .photo-frame { transform: rotate(0.6deg); }
+.photo-slot:nth-child(n) .photo-frame { transition: transform 0.3s, box-shadow 0.3s; }
+.photo-slot:nth-child(n) .photo-frame:hover { transform: rotate(0deg) scale(1.03); box-shadow: 8px 8px 0 rgba(43,42,38,0.22); }
+.photo-caption { margin-top: 14px; font-size: 14px; color: var(--ink-soft); letter-spacing: 1px; }
+
+/* ═══════════ 照片预览灯箱 ═══════════ */
+.lightbox {
+  position: fixed; inset: 0; z-index: 300;
+  background: rgba(24, 20, 14, 0.93);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transition: opacity 0.35s, visibility 0.35s;
+}
+.lightbox.open { opacity: 1; visibility: visible; pointer-events: auto; }
+.lb-figure {
+  max-width: min(88vw, 1100px); max-height: 84vh;
+  margin: 0; text-align: center;
+}
+.lb-figure img {
+  max-width: 100%; max-height: 74vh; object-fit: contain;
+  background: var(--card); padding: 12px 12px 8px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  -webkit-mask: url("torn-mask.svg") no-repeat center / 100% 100%;
+          mask: url("torn-mask.svg") no-repeat center / 100% 100%;
+  transition: transform 0.25s ease;
+  cursor: zoom-in;
+  user-select: none; -webkit-user-drag: none;
+}
+.lb-figure img.dragging { transition: none; }
+.lb-figure figcaption {
+  color: #d8cfb8; font-size: 15px; letter-spacing: 2px;
+  margin-top: 14px;
+}
+.lb-hint {
+  color: rgba(216, 207, 184, 0.55); font-size: 13px;
+  letter-spacing: 1px; margin-top: 6px;
+}
+.lb-close, .lb-prev, .lb-next {
+  position: absolute; border: none; cursor: pointer;
+  background: rgba(246, 241, 227, 0.14); color: #f6f1e3;
+  font-family: inherit; font-size: 22px; line-height: 1;
+  transition: background 0.2s;
+}
+.lb-close { top: 20px; right: 20px; width: 44px; height: 44px; border-radius: 50%; }
+.lb-prev, .lb-next { top: 50%; transform: translateY(-50%); width: 48px; height: 64px; font-size: 30px; }
+.lb-prev { left: 16px; }
+.lb-next { right: 16px; }
+.lb-close:hover, .lb-prev:hover, .lb-next:hover { background: rgba(246, 241, 227, 0.32); }
+@media (max-width: 640px) {
+  .lb-prev { left: 6px; }
+  .lb-next { right: 6px; }
+}
+
+/* ═══════════ 留言板 ═══════════ */
+.msg-box { max-width: 680px; margin: 0 auto; }
+.msg-form {
+  background: var(--card); border: 1.5px dashed var(--ink);
+  padding: 18px; display: flex; flex-direction: column; gap: 12px;
+  box-shadow: 6px 6px 0 rgba(43,42,38,0.1);
+}
+.msg-form input, .msg-form textarea {
+  font-family: inherit; font-size: 16px; color: var(--ink);
+  background: #fbf8ef; border: 1.5px solid var(--line);
+  padding: 10px 12px; outline: none; resize: vertical;
+}
+.msg-form input:focus, .msg-form textarea:focus { border-color: var(--red); }
+.msg-btn {
+  align-self: flex-end; font-family: inherit; font-size: 17px;
+  color: var(--paper); background: var(--red); border: none;
+  padding: 8px 22px; cursor: pointer; letter-spacing: 2px;
+  transition: background 0.2s;
+}
+.msg-btn:hover { background: var(--red-deep); }
+.msg-list { margin-top: 30px; display: flex; flex-direction: column; gap: 16px; }
+.msg-card {
+  background: var(--card); border-left: 5px solid var(--red);
+  padding: 12px 18px; box-shadow: 3px 3px 0 rgba(43,42,38,0.08);
+}
+.msg-card .m-name { font-weight: bold; letter-spacing: 1px; }
+.msg-card .m-time { float: right; font-size: 13px; color: var(--ink-soft); }
+.msg-card p { font-size: 15px; margin-top: 4px; }
+.msg-empty { text-align: center; color: var(--ink-soft); font-size: 15px; padding: 20px 0; }
+
+/* ═══════════ 页脚 ═══════════ */
+.footer {
+  text-align: center; padding: 44px 20px 30px;
+  background: var(--paper-deep); border-top: 3px double var(--red);
+  font-size: 17px; letter-spacing: 2px;
+}
+.footer-sm { font-size: 13px; color: var(--ink-soft); margin-top: 6px; }
+
+/* ═══════════ 移动端 ═══════════ */
+@media (max-width: 640px) {
+  body { font-size: 16px; }
+  .topbar-inner { justify-content: center; }
+  .hero { padding-top: 150px; }
+  .patient-grid { grid-template-columns: 1fr; }
+}
