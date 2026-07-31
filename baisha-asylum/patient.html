@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>患者档案 · 白沙街疯人院</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="patient.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏥</text></svg>">
+</head>
+<body class="detail-page">
+
+  <!-- ═══════════ 顶部返回条 ═══════════ -->
+  <header class="detail-topbar">
+    <a href="index.html#patients" class="back-link">← 返回病友档案</a>
+    <span class="detail-brand">🏥 白沙街疯人院 · 患者档案室</span>
+  </header>
+
+  <!-- ═══════════ 患者详情（由 patient.js 渲染） ═══════════ -->
+  <main id="detailMain" class="detail-main"></main>
+
+  <footer class="footer">
+    <p>白沙街疯人院 · 病友纪念档案</p>
+    <p class="footer-sm">档案室地址：白沙街 · 六人合住 · 出院日期：待定</p>
+  </footer>
+
+  <script src="data.js"></script>
+  <script src="patient.js"></script>
+</body>
+</html>
